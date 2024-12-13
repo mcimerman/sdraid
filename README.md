@@ -1,5 +1,5 @@
-SD RAID: a hardware RAID on SD cards made for AVR
-=================================================
+SD RAID: a hardware RAID on SD cards for AVR
+============================================
 
 ## Idea
 
