@@ -33,3 +33,9 @@ to all underlying SD cards holding the array configuration like:
  - index in the array
  - level
  - layout
+
+# Photos
+
+![sdrai photo1](sdraid1.jpg)
+![sdrai photo2](sdraid2.jpg)
+![sdrai photo3](sdraid3.jpg)
