@@ -36,6 +36,6 @@ to all underlying SD cards holding the array configuration like:
 
 # Photos
 
-![sdrai photo1](sdraid1.jpg)
-![sdrai photo2](sdraid2.jpg)
-![sdrai photo3](sdraid3.jpg)
+![sdrai photo1](photos/sdraid1.jpg)
+![sdrai photo2](photos/sdraid2.jpg)
+![sdrai photo3](photos/sdraid3.jpg)
