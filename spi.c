@@ -9,7 +9,7 @@ spi_init(void)
 
 	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 
-	for (unsigned i = 0; i < DEVNO; i++)
+	for (uint8_t i = 0; i < MAX_DEVNO; i++)
 		ss_disable(i);
 
 	SPSR = 0;
