@@ -14,7 +14,7 @@ read: read.o uart.o spi.o sd.o
 	avr-objcopy -O ihex $@ $@.hex
 	avrdude -c arduino -p m328p -U flash:w:"$@.hex":a -P $(DEV) || rm $@
 
-%.o: %.c var.h uart.h spi.h sd.h
+%.o: %.c var.h uart.h spi.h sd.h util.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
