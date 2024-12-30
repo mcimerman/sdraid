@@ -36,6 +36,15 @@ to all underlying SD cards holding the array configuration like:
 
 # Photos
 
+```
+GREEN: SS
+YELLOW: SCK
+GREY: MOSI
+PURPLE: MISO
+RED: VCC
+BROWN: GND
+```
+
 ![sdrai photo1](photos/sdraid1.jpg)
 ![sdrai photo2](photos/sdraid2.jpg)
 ![sdrai photo3](photos/sdraid3.jpg)
