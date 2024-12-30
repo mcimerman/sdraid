@@ -19,22 +19,56 @@ Have a working memory abstraction allowing redundancy using classic
 RAID techniques like mirroring and possibly different parity
 layouts like RAID5.
 
+## "Documentation"
+
+#### Terminology
+
+I call:
+- the RAID array a **volume**,
+- the underlying SD cards **extents**
+- the superblock - **metatada**
+
 ### Interface
 
 > Still an open question, behave just like another SPI slave,
 or allow for more high level API throgh UART.
 
+For now see `blkdev_ops_t` in [<var.h>](./var.h).
+
 ### Assembly
 
-During assembly there is going to be a sdraid superblock written
-to all underlying SD cards holding the array configuration like:
- - magic
- - no. of SD cards
- - index in the array
- - level
- - layout
+During assembly there is a sdraid superblock written to all
+extents holding the volume configuration:
 
-# Photos
+```C
+typedef struct metadata {
+	char magic[4];
+	uint8_t version;
+	uint8_t devno;
+	uint8_t level;
+	uint8_t strip_size_bits;
+	uint32_t blkno;
+	uint32_t data_blkno;
+	uint8_t data_offset;
+	uint8_t index;
+} __attribute__((packed)) metadata_t;
+```
+
+
+# Setup
+
+### Pins
+
+SPI is connected to ICSP on ARDUINO UNO clone
+[scheme 1](https://jgaurorawiki.com/_media/a5/arduino-icsp.jpg)
+or [scheme 2](https://www.olimex.com/Products/AVR/Programmers/AVR-ICSP/resources/AVR-ICSP.gif)
+.
+
+Slave selects are connected on `PB2`, `PB1` and `PB0` (Arduino pins 10, 9 and 8)
+(see [<spi.h>](./spi.h)).
+
+
+### Cable colors
 
 ```
 GREEN: SS
@@ -44,6 +78,8 @@ PURPLE: MISO
 RED: VCC
 BROWN: GND
 ```
+
+## Photos
 
 ![sdrai photo3](photos/sdraid3.jpg)
 ![sdrai photo1](photos/sdraid1.jpg)
