@@ -42,6 +42,34 @@ print_vol_info(sdvol_t *vol)
 	printf("data_offset: %u\r\n", vol->data_offset);
 }
 
+static const char *
+state_str(state_t state)
+{
+	switch (state) {
+	case OPTIMAL:
+		return "OPTIMAL";
+	case DEGRADED:
+		return "DEGRADED";
+	case REBUILD:
+		return "REBUILD";
+	case FAULTY:
+		return "FAULTY";
+	default:
+		return "Invalid state";
+	}
+}
+
+void
+print_vol_state(sdvol_t *vol)
+{
+	printf("volume status: %s\r\n", state_str(vol->state));
+	printf("extents status: index status\r\n");
+	for (uint8_t i = 0; i < vol->devno; i++) {
+		printf("                  %d    %s\r\n",
+		    i, state_str(vol->extents->state));
+	}
+}
+
 void
 fill_metadata(sdvol_t *vol, metadata_t *metadata)
 {

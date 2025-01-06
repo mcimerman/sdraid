@@ -17,6 +17,7 @@
 
 #define STRIP_SIZE(sz)	(1 << (sz))
 
+
 struct sdvol;
 typedef struct sdvol sdvol_t;
 
@@ -31,10 +32,9 @@ typedef struct sdraid_ops {
 	uint8_t (*create)(sdvol_t *);
 } sdraid_ops_t;
 
-
 typedef enum {
-	RAID0,
-	RAID1,
+	RAID0 = 0,
+	RAID1 = 1,
 	INVALID
 } sdlevel_t;
 
@@ -46,8 +46,7 @@ typedef enum {
 } state_t;
 
 typedef struct extent {
-	uint8_t index;
-	uint8_t state;
+	state_t state;
 } extent_t;
 
 struct sdvol {
@@ -60,6 +59,7 @@ struct sdvol {
 	uint8_t data_offset;
 	uint8_t strip_size_bits; /* bit shifted strip size */
 	extent_t extents[MAX_DEVNO];
+	state_t state;
 } __attribute__((packed));
 
 typedef struct metadata {
@@ -73,6 +73,11 @@ typedef struct metadata {
 	uint8_t data_offset;
 	uint8_t index;
 } __attribute__((packed)) metadata_t;
+
+typedef struct sdraid_cfg {
+	uint8_t devno;
+	uint8_t level;
+} sdraid_cfg_t;
 
 extern uint8_t raid0_create(sdvol_t *);
 extern uint8_t raid1_create(sdvol_t *);
