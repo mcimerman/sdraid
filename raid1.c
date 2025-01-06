@@ -31,11 +31,13 @@ raid1_create(sdvol_t *vol)
 static uint8_t
 raid1_write(sdvol_t *, uint32_t, void *)
 {
+	printf("raid1_write()\r\n");
 	return (0);
 }
 
 static uint8_t
 raid1_read(sdvol_t *, uint32_t, void *)
 {
+	printf("raid1_read()\r\n");
 	return (0);
 }
