@@ -21,7 +21,25 @@ layouts like RAID5.
 
 ## "Documentation"
 
-#### Terminology
+### Building
+
+To build the RAID run `make`, to upload it as well, run `make upload`.
+
+After it has been uploaded, run `make serial` to see the serial I/O.
+
+Requirements:
+
+- `avr-gcc`
+- `avr-objcopy`
+- `avrdude`
+- GNU or BSD `make`
+- `screen` for serial communication
+
+The `Makefile` assumes the following:
+
+- your Atmega328P(B)'s serial port is `/dev/ttyUSB[0-9]*`
+
+### Terminology
 
 I call:
 - the RAID array a **volume**,
