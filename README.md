@@ -7,7 +7,7 @@ SD RAID: a hardware RAID on SD cards for AVR
 
 SD code ([sd.c](./sd.c)) is partly taken from [here](https://github.com/i350/ATMEGA328P-SD-Card-FAT32-SPI-ATMEL-Studio/tree/master).
 
-It is cleaned up and styled a bit.
+It is cleaned up and styled a ~~bit~~ lot.
 
 Other notes [here](./NOTES.md).
 
