@@ -55,6 +55,21 @@ For now see `blkdev_ops_t` in [<var.h>](./var.h).
 
 ### Assembly
 
+```
++--------------+
+|   SDRAID     |
+|  Superblock  |
++--------------+
+|              |
+|              |
+|    Data      |
+|              |
+|              |
+|              |
+|              |
++--------------+
+```
+
 During assembly there is a sdraid superblock written to all
 extents holding the volume configuration:
 
