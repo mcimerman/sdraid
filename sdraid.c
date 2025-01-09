@@ -173,6 +173,7 @@ static void
 io_menu(void)
 {
 	uint32_t off;
+	uint8_t buf[BLKSIZE] = { 0 };
 
 	printf("----- IO menu -----\r\n");
 	for (;;) {
@@ -194,7 +195,6 @@ io_menu(void)
 			off = strtol(input, NULL, 10);
 			printf("\r\n");
 
-			uint8_t readbuf[BLKSIZE] = { 0 };
 
 			printf("len (in blocks): ");
 			read_input();
@@ -202,18 +202,17 @@ io_menu(void)
 			printf("\r\n");
 
 			for (uint32_t i = 0; i < len; i++) {
-				if (vol.dev_ops.vol_read_blk(&vol, off, readbuf)
+				if (vol.dev_ops.vol_read_blk(&vol, off, buf)
 				    != 0) {
 					printf("failed reading\r\n");
 					break;
 				}
 				printf("volume block: %lu\r\n", off + i);
-				print_block(readbuf);
+				print_block(buf);
 			}
+			memset(buf, 0, BLKSIZE);
 
 			break;
-		/* TODO */
-		/*
 		case 'w':
 		case 'W':
 			printf("block number (indexed from 0): ");
@@ -226,9 +225,19 @@ io_menu(void)
 			uint8_t content = uart_rx();
 			printf("%c\r\n", content);
 
+			memset(buf, content, BLKSIZE);
+
+			if (vol.dev_ops.vol_write_blk(&vol, off, buf) != 0) {
+				printf("failed writing\r\n");
+				memset(buf, 0, BLKSIZE);
+				break;
+			}
+
+			memset(buf, 0, BLKSIZE);
+
+			printf("WRITE OK\r\n");
 
 			break;
-		*/
 		case 'd':
 		case 'D':
 			debug_menu();
