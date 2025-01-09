@@ -29,15 +29,54 @@ raid0_create(sdvol_t *vol)
 }
 
 static uint8_t
-raid0_write(sdvol_t *, uint32_t, void *)
+raid0_op(sdvol_t *vol, uint32_t ba, void *data, bdop_type_t type)
 {
-	printf("raid0_write()\r\n");
+	if (vol->state == FAULTY)
+		return (1);
+
+	if (ba >= vol->data_blkno)
+		return (2);
+
+	uint32_t strip_size = STRIP_SIZE(vol->strip_size_bits) / BLKSIZE; /* in blocks */
+	uint32_t strip_no = ba / strip_size;
+	uint32_t extent = strip_no % vol->devno;
+	uint32_t stripe = strip_no / vol->devno;
+	uint32_t strip_off = ba % strip_size;
+
+	ba = stripe * strip_size + strip_off;
+
+	ba += DATA_OFFSET;
+
+	switch (type) {
+	case READ:
+		if (sd_read(extent, ba, data) != 0)
+			goto error;
+		break;
+	case WRITE:
+		if (sd_write(extent, ba, data) != 0)
+			goto error;
+		break;
+	default:
+		return (3);
+	}
+
 	return (0);
+error:
+	vol->extents[extent].state = FAULTY;
+	vol->state = FAULTY;
+	return (1);
 }
 
 static uint8_t
-raid0_read(sdvol_t *, uint32_t, void *)
+raid0_write(sdvol_t *vol, uint32_t ba, void *data)
+{
+	printf("raid0_write()\r\n");
+	return (raid0_op(vol, ba, data, WRITE));
+}
+
+static uint8_t
+raid0_read(sdvol_t *vol, uint32_t ba, void *data)
 {
 	printf("raid0_read()\r\n");
-	return (0);
+	return (raid0_op(vol, ba, data, READ));
 }

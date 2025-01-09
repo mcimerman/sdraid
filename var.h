@@ -10,8 +10,8 @@
 #define MAX_DEVNO	3
 #define BLKSIZE		512
 #define META_SIZE	1 /* in blocks */
-#define META_OFFSET	3
-#define DATA_OFFSET	((MD_SIZE) + (MD_OFFSET))
+#define META_OFFSET	3 /* in blocks */
+#define DATA_OFFSET	((META_SIZE) + (META_OFFSET))
 #define MAGIC "RAID"
 #define MAGIC_LEN	4
 
@@ -31,6 +31,11 @@ typedef struct blkdev_ops {
 typedef struct sdraid_ops {
 	uint8_t (*create)(sdvol_t *);
 } sdraid_ops_t;
+
+typedef enum {
+	READ,
+	WRITE
+} bdop_type_t;
 
 typedef enum {
 	RAID0 = 0,
