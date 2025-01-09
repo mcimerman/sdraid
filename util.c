@@ -99,14 +99,10 @@ write_metadata(sdvol_t *vol)
 		metadata.index = i;
 
 		memcpy(meta_block, &metadata, sizeof(metadata_t));
-#if WRITE_ENABLED
 		if (sd_write(i, META_OFFSET, meta_block) != 0) {
 			printf("failed writing metadata to sd %u\r\n", i);
 			return (1);
 		}
-#else
-		printf("not writing metadata: WRITEs are DISABLED\r\n");
-#endif
 	}
 
 	return (0);

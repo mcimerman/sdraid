@@ -4,6 +4,8 @@
 #include "spi.h"
 #include "uart.h"
 
+#undef WRITE_ENABLED
+
 uint8_t
 sd_init(uint8_t dev)
 {
@@ -159,6 +161,10 @@ error:
 uint8_t
 sd_write(uint8_t dev, uint32_t ba, uint8_t *buf)
 {
+#ifndef WRITE_ENABLED
+	printf("not writing metadata: WRITEs are DISABLED\r\n");
+	return (0);
+#endif
 	uint8_t response;
 	uint16_t retry = 0;
 
