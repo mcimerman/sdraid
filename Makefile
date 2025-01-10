@@ -2,11 +2,13 @@ CFLAGS = -mmcu=atmega328p -Os -Wall -Wextra
 CC = avr-gcc
 DEV = "$(shell ls /dev/ttyUSB* | sed 1q)"
 
+.PHONY: all clean upload
+
 all: sdraid 
 
 upload: sdraid
-	avr-objcopy -O ihex $@ $@.hex
-	avrdude -c arduino -p m328p -U flash:w:"$@.hex":a -P $(DEV) || rm $@
+	avr-objcopy -O ihex $< $<.hex
+	avrdude -c arduino -p m328p -U flash:w:"$<.hex":a -P $(DEV) || rm $<
 
 sdraid: sdraid.o uart.o spi.o sd.o util.o raid0.c raid1.c
 	$(CC) $(CFLAGS) -o $@ $^
