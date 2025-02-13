@@ -16,12 +16,12 @@
 
 #define MAX_INPUT_LEN 32
 
-static void debug_menu(void);
+static void debug_menu(uint8_t *);
 static void read_input(void);
 static sdraid_cfg_t fill_cfg(bool);
 static void menu(void);
 static void io_menu(void);
-static uint8_t sdraid_create(sdraid_cfg_t *);
+static uint8_t sdraid_create(sdraid_cfg_t *, bool);
 static void sdraid_print_status(void);
 static void print_block(uint8_t *);
 
@@ -53,7 +53,6 @@ sdraid_print_status(void)
 	print_vol_info(&vol);
 	print_vol_state(&vol);
 }
-
 
 static void
 read_input(void)
@@ -100,31 +99,66 @@ fill_cfg(bool assembly)
 }
 
 static uint8_t
-sdraid_create(sdraid_cfg_t *cfg)
+sdraid_create(sdraid_cfg_t *cfg, bool assemble)
 {
-	printf("creating volume with devno: %u, level: %u\r\n",
-	    cfg->devno, cfg->level);
+	printf("sdraid_create()\r\n");
 
-	vol.devno = cfg->devno;
-	vol.level = cfg->level;
+	for (uint8_t i = 0; i < MAX_DEVNO; i++)
+		vol.extents[i].state = FAULTY;
 
-	switch (cfg->level) {
+	if (assemble) {
+		for (uint8_t i = 0; i < MAX_DEVNO; i++) {
+			if (sd_init(i) == 0)
+				vol.extents[i].state = OPTIMAL;
+		}
+
+		if (read_metadata(&vol) != 0)
+			return (1);
+	} else {
+		printf("creating volume with devno: %u, level: %u\r\n",
+		    cfg->devno, cfg->level);
+		vol.devno = cfg->devno;
+		vol.level = cfg->level;
+		vol.data_offset = DATA_OFFSET;
+
+		for (uint8_t i = 0; i < vol.devno; i++) {
+			if (sd_init(i) == 0)
+				vol.extents[i].state = OPTIMAL;
+			else
+				printf("failed initing card no. %u\r\n", i);
+		}
+	}
+
+	switch (vol.level) {
 	case RAID0:
-		vol.strip_size_bits = 12; /* 4K strips */
+		if (!assemble)
+			//vol.strip_size_bits = 12; /* 4K strips */
+			vol.strip_size_bits = 10; /* 1K strips */
 		vol.ops.create = raid0_create;
+		vol.ops.init = raid0_init;
 		break;
 	case RAID1:
-		vol.strip_size_bits = 0;
+		if (!assemble)
+			vol.strip_size_bits = 0;
 		vol.ops.create = raid1_create;
+		vol.ops.init = raid1_init;
 		break;
 	default:
 		printf("error: invalid level\r\n");
 		return (1);
 	}
 
-	if (vol.ops.create(&vol) != 0)
+	if (vol.ops.init(&vol) != 0) {
+		printf("failed to init the volume\r\n");
 		return (1);
+	}
 
+	if (!assemble) {
+		if (vol.ops.create(&vol) != 0)
+			return (1);
+	}
+
+	printf("sdraid_create(): sucess\r\n");
 	return (0);
 }
 
@@ -148,20 +182,20 @@ menu(void)
 		case 'c':
 		case 'C':
 			cfg = fill_cfg(false);
-			if (sdraid_create(&cfg) != 0) {
+			if (sdraid_create(&cfg, false) != 0) {
 				printf("error creating volume\r\n");
 				break;
 			}
 			io_menu();
 			break;
-		/* TODO */
-		/*
+		case 'a':
 		case 'A':
-			cfg = fill_cfg();
-			sdraid_assemble(cfg);
+			if (sdraid_create(&cfg, true) != 0) {
+				printf("error assembling volume\r\n");
+				break;
+			}
 			io_menu();
 			break;
-		*/
 		default:
 			printf("invalid command\r\n");
 			break;
@@ -240,7 +274,7 @@ io_menu(void)
 			break;
 		case 'd':
 		case 'D':
-			debug_menu();
+			debug_menu(buf);
 			break;
 		case 'q':
 		case 'Q':
@@ -263,7 +297,7 @@ print_block(uint8_t *buf)
 }
 
 static void
-debug_menu(void)
+debug_menu(uint8_t *readbuf)
 {
 	printf("----- debug menu -----\r\n");
 	for (;;) {
@@ -290,11 +324,10 @@ debug_menu(void)
 			uint32_t len = strtol(input, NULL, 10);
 			printf("\r\n");
 
-			uint8_t readbuf[BLKSIZE] = { 0 };
-
 			for (uint32_t i = 0; i < len; i++) {
-				if (sd_read(extent, off + i, readbuf) != 0) {
-					printf("failed reading\r\n");
+				uint8_t rc;
+				if ((rc = sd_read(extent, off + i, readbuf)) != 0) {
+					printf("failed reading: %u\r\n", rc);
 					break;
 				}
 				printf("ext: %u, block: %lu\r\n",

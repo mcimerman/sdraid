@@ -50,8 +50,6 @@ state_str(state_t state)
 		return "OPTIMAL";
 	case DEGRADED:
 		return "DEGRADED";
-	case REBUILD:
-		return "REBUILD";
 	case FAULTY:
 		return "FAULTY";
 	default:
@@ -87,7 +85,7 @@ uint8_t
 write_metadata(sdvol_t *vol)
 {
 	uint8_t meta_block[BLKSIZE];
-	memset(meta_block, 0xff, BLKSIZE);
+	memset(meta_block, 0, BLKSIZE);
 
 	metadata_t metadata = { 0 };
 
@@ -96,6 +94,9 @@ write_metadata(sdvol_t *vol)
 	print_metadata(&metadata);
 
 	for (uint8_t i = 0; i < vol->devno; i++) {
+		if (vol->extents[i].state == FAULTY)
+			continue;
+
 		metadata.index = i;
 
 		memcpy(meta_block, &metadata, sizeof(metadata_t));
@@ -106,4 +107,52 @@ write_metadata(sdvol_t *vol)
 	}
 
 	return (0);
+}
+
+uint8_t
+read_metadata(sdvol_t *vol)
+{
+	uint8_t meta_block[BLKSIZE];
+	metadata_t metadata;
+
+	/* XXX: assume devs are in the same order as assembled */
+	for (uint8_t i = 0; i < MAX_DEVNO; i++) {
+		if (sd_read(i, META_OFFSET, meta_block) == 0)
+			goto good;
+	}
+
+	printf("no succesful metadata read\r\n");
+	return (1);
+
+good:
+	memcpy(&metadata, meta_block, sizeof(metadata));
+
+	if (strncmp(metadata.magic, MAGIC, MAGIC_LEN) != 0) {
+		printf("invalid magic\r\n");
+		return (1);
+	}
+
+	print_metadata(&metadata);
+
+	vol->devno = metadata.devno;
+	vol->level = metadata.level;
+	vol->strip_size_bits = metadata.strip_size_bits;
+	vol->blkno = metadata.blkno;
+	vol->data_blkno = metadata.data_blkno;
+	vol->data_offset = metadata.data_offset;
+
+	return (0);
+}
+
+uint8_t
+count_dev_state(sdvol_t *vol, state_t state)
+{
+	uint8_t k = 0;
+
+	for (uint8_t i = 0; i < vol->devno; i++) {
+		if (vol->extents[i].state == state)
+			k++;
+	}
+
+	return (k);
 }

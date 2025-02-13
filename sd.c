@@ -4,7 +4,10 @@
 #include "spi.h"
 #include "uart.h"
 
+/*
 #undef WRITE_ENABLED
+*/
+#define WRITE_ENABLED
 
 uint8_t
 sd_init(uint8_t dev)
@@ -20,8 +23,10 @@ sd_init(uint8_t dev)
 	do {
 		response = sd_cmd(dev, GO_IDLE_STATE, 0);
 
-		if (retry++ > 0x20)
+		if (retry++ > 0x20) {
+			ss_disable(dev);
 			return (1);
+		}
 
 	} while (response != 0x01);
 
@@ -162,7 +167,6 @@ uint8_t
 sd_write(uint8_t dev, uint32_t ba, uint8_t *buf)
 {
 #ifndef WRITE_ENABLED
-	printf("not writing metadata: WRITEs are DISABLED\r\n");
 	return (0);
 #endif
 	uint8_t response;
