@@ -17,7 +17,7 @@ raid0_create(sdvol_t *vol)
 	 * TODO: truncate or assert same for all cards
 	 */
 	vol->blkno = sd_nblocks(0) * vol->devno;
-	vol->data_blkno = (sd_nblocks(0) - DATA_OFFSET) * vol->devno;
+	vol->data_blkno = (sd_nblocks(0) - vol->data_offset) * vol->devno;
 
 	if (write_metadata(vol) != 0) {
 		printf("metadata write failed\r\n");
@@ -64,7 +64,7 @@ raid0_op(sdvol_t *vol, uint32_t ba, void *data, bdop_type_t type)
 
 	ba = stripe * strip_size + strip_off;
 
-	ba += DATA_OFFSET;
+	ba += vol->data_offset;
 
 	switch (type) {
 	case READ:

@@ -17,7 +17,7 @@ raid1_create(sdvol_t *vol)
 	 * TODO: truncate or assert same for all cards
 	 */
 	vol->blkno = sd_nblocks(0);
-	vol->data_blkno = sd_nblocks(0) - DATA_OFFSET;
+	vol->data_blkno = sd_nblocks(0) - vol->data_offset;
 
 	if (write_metadata(vol) != 0) {
 		printf("metadata write failed\r\n");
@@ -60,7 +60,7 @@ raid1_write(sdvol_t *vol, uint32_t ba, void *data)
 	if (ba >= vol->data_blkno)
 		return (2);
 
-	ba += DATA_OFFSET;
+	ba += vol->data_offset;
 
 	uint8_t succesful = 0;
 	for (uint8_t i = 0; i < vol->devno; i++) {
@@ -94,7 +94,7 @@ raid1_read(sdvol_t *vol, uint32_t ba, void *data)
 	if (ba >= vol->data_blkno)
 		return (2);
 
-	ba += DATA_OFFSET;
+	ba += vol->data_offset;
 
 	for (uint8_t i = 0; i < vol->devno; i++) {
 		if (vol->extents[i].state != OPTIMAL)
