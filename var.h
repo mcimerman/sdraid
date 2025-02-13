@@ -30,6 +30,7 @@ typedef struct blkdev_ops {
 
 typedef struct sdraid_ops {
 	uint8_t (*create)(sdvol_t *);
+	uint8_t (*init)(sdvol_t *);
 } sdraid_ops_t;
 
 typedef enum {
@@ -46,7 +47,6 @@ typedef enum {
 typedef enum {
 	OPTIMAL,
 	DEGRADED,
-	REBUILD,
 	FAULTY
 } state_t;
 
@@ -76,7 +76,7 @@ typedef struct metadata {
 	uint32_t blkno;
 	uint32_t data_blkno;
 	uint8_t data_offset;
-	uint8_t index;
+	uint8_t index; /* currently not used */
 } __attribute__((packed)) metadata_t;
 
 typedef struct sdraid_cfg {
@@ -86,5 +86,8 @@ typedef struct sdraid_cfg {
 
 extern uint8_t raid0_create(sdvol_t *);
 extern uint8_t raid1_create(sdvol_t *);
+
+extern uint8_t raid0_init(sdvol_t *);
+extern uint8_t raid1_init(sdvol_t *);
 
 #endif

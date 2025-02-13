@@ -11,19 +11,38 @@ uint8_t
 raid0_create(sdvol_t *vol)
 {
 	printf("raid0_create()\r\n");
+
+	/*
+	 * XXX: for now take first card's nblocks
+	 * TODO: truncate or assert same for all cards
+	 */
+	vol->blkno = sd_nblocks(0) * vol->devno;
+	vol->data_blkno = (sd_nblocks(0) - DATA_OFFSET) * vol->devno;
+
+	if (write_metadata(vol) != 0) {
+		printf("metadata write failed\r\n");
+		return (1);
+	}
+
+	return (0);
+}
+
+uint8_t
+raid0_init(sdvol_t *vol)
+{
+	printf("raid0_init()\r\n");
 	vol->dev_ops.vol_write_blk = raid0_write;
 	vol->dev_ops.vol_read_blk = raid0_read;
 	vol->dev_ops.vol_blkno = sdraid_util_get_data_blkno;
 
-	for (uint8_t i = 0; i < vol->devno; i++) {
-		if (sd_init(i) != 0) {
-			printf("initing sd %u failed\r\n", i);
-			return (1);
-		}
-	}
+	uint8_t healthy = count_dev_state(vol, OPTIMAL);
 
-	if (write_metadata(vol) != 0)
+	if (healthy != vol->devno) {
+		vol->state = FAULTY;
 		return (1);
+	} else {
+		vol->state = OPTIMAL;
+	}
 
 	return (0);
 }
