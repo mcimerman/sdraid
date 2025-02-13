@@ -25,7 +25,8 @@ layouts like RAID5.
 
 To build the RAID run `make`, to upload it as well, run `make upload`.
 
-After it has been uploaded, run `make serial` to see the serial I/O.
+After it has been uploaded, run `make serial` to see the serial I/O with
+GNU screen.
 
 Requirements:
 
@@ -43,8 +44,8 @@ The `Makefile` assumes the following:
 
 I call:
 - the RAID array a **volume**,
-- the underlying SD cards **extents**
-- the superblock - **metatada**
+- the underlying SD cards **extents**,
+- the superblock **metatada**
 
 ### Interface
 
@@ -56,10 +57,10 @@ For now see `blkdev_ops_t` in [<var.h>](./var.h).
 ### Assembly
 
 ```
-+--------------+
++--------------+ <- LBA 3
 |   SDRAID     |
 |  Superblock  |
-+--------------+
++--------------+ <- LBA 4
 |              |
 |              |
 |    Data      |
@@ -73,7 +74,7 @@ For now see `blkdev_ops_t` in [<var.h>](./var.h).
 During assembly there is a sdraid superblock written to all
 extents holding the volume configuration:
 
-```C
+```c
 typedef struct metadata {
 	char magic[4];
 	uint8_t version;
