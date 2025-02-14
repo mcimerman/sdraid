@@ -54,7 +54,32 @@ or allow for more high level API throgh UART.
 
 For now see `blkdev_ops_t` in [<var.h>](./var.h).
 
-### Assembly
+### File tree
+
+```
+.
+├── Makefile
+├── NOTES.md
+├── README.md
+├── photos
+│   ├── sdraid1.jpg
+│   ├── sdraid2.jpg
+│   └── sdraid3.jpg
+├── raid0.c          <-- striping functions
+├── raid1.c          <-- mirroring functions
+├── sd.c             <-- SD card commands
+├── sd.h
+├── sdraid.c
+├── spi.c            <-- SPI control
+├── spi.h
+├── uart.c           <-- serial communication
+├── uart.h
+├── util.c           <-- helper functions
+├── util.h
+└── var.h            <-- main structures and constants
+```
+
+### Metadata
 
 ```
 +--------------+ <- LBA 3
