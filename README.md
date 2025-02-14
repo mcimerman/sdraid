@@ -49,10 +49,19 @@ I call:
 
 ### Interface
 
-> Still an open question, behave just like another SPI slave,
-or allow for more high level API throgh UART.
+For the ease of demonstration there is a client that
+takes commands from `stdin` and sends them to the arduino
+via serial. The client supports commands:
 
-For now see `blkdev_ops_t` in [<var.h>](./var.h).
+- `pwd` : print the current working directory
+- `cd` : change working directory
+- `ls` : list directory contents
+- `put <filename>` : upload file
+- `get <filename>` : download file that is uploaded
+
+For simplicity there is only one file kept at once.
+
+But see `blkdev_ops_t` in [<var.h>](./var.h).
 
 ### File tree
 
