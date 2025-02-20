@@ -53,15 +53,27 @@ For the ease of demonstration there is a client that
 takes commands from `stdin` and sends them to the arduino
 via serial. The client supports commands:
 
-- `pwd` : print the current working directory
-- `cd` : change working directory
-- `ls` : list directory contents
-- `put <filename>` : upload file
-- `get <filename>` : download file that is uploaded
+- all modes:
+  - `flush` - flushes uart read buffer
+- initialize mode:
+  - `assemble` - assemble volume from metadata
+  - `create` - create new volume and write metadata
+- normal mode:
+  - `pwd` - print current working directory
+  - `ls` - list current working directory
+  - `cd <path>` - change working directory
+  - `put <file>` - writes file to the volume
+  - `get <file>` - reads volume contents into file
+  - `debug` - switches to debug mode
+- debug mode:
+  - `read` - reads single block from volume
+  - `read2` - reads single block from specified sd
+  - `exit` - exits back into normal mode
+
 
 For simplicity there is only one file kept at once.
 
-But see `blkdev_ops_t` in [<var.h>](./var.h).
+For developing own interfaces using classic R/W see `blkdev_ops_t` in [<var.h>](./var.h).
 
 ### File tree
 
