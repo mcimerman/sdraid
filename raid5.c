@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "var.h"
 #include "util.h"
@@ -39,7 +40,7 @@ raid5_init(sdvol_t *vol)
 
 	if (healthy < vol->devno - 1) {
 		vol->state = FAULTY;
-		printf("raid5_init(): not enough healthy extents\r\n");
+		printf("not enough healthy extents\r\n");
 		return (1);
 	} else if (healthy == vol->devno - 1) {
 		vol->state = DEGRADED;
@@ -64,7 +65,7 @@ raid5_op(sdvol_t *vol, uint32_t ba, void *data, bdop_type_t type)
 	uint32_t stripe = strip_no / (vol->devno - 1);
 	uint32_t strip_off = ba % strip_size;
 
-	uint32_t p_extent = 0;
+	uint8_t p_extent = 0;
 
 	switch (vol->layout) {
 	case HR_RLQ_RAID4_0:
@@ -86,7 +87,7 @@ raid5_op(sdvol_t *vol, uint32_t ba, void *data, bdop_type_t type)
 		return (1);
 	}
 
-	uint32_t extent = 0;
+	uint8_t extent = 0;
 
 	switch (vol->layout) {
 	case HR_RLQ_RAID4_0:
@@ -116,15 +117,132 @@ raid5_op(sdvol_t *vol, uint32_t ba, void *data, bdop_type_t type)
 
 	ba += vol->data_offset;
 
-	// XXX: add degraded
+	uint8_t bad;
+	uint8_t xorbuf[BLKSIZE];
+
 	switch (type) {
 	case READ:
-		if (sd_read(extent, ba, data) != 0)
-			goto error;
+retry_read:
+		memset(xorbuf, 0, sizeof(xorbuf));
+		if (vol->extents[extent].state == OPTIMAL) {
+			if (sd_read(extent, ba, data) != 0) {
+				vol->extents[extent].state = FAULTY;
+				if (vol->state == DEGRADED) {
+					goto error;
+				} else {
+					vol->state = DEGRADED;
+					goto retry_read;
+				}
+			}
+		} else {
+			for (uint8_t i = 0; i < vol->devno; i++) {
+				if (i == extent)
+					continue;
+				if (sd_read_and_xor(i, ba, xorbuf) != 0) {
+					vol->extents[i].state = FAULTY;
+					goto error;
+				}
+			}
+			memcpy(data, xorbuf, BLKSIZE);
+		}
 		break;
 	case WRITE:
-		if (sd_write(extent, ba, data) != 0)
-			goto error;
+retry_write:
+		memset(xorbuf, 0, sizeof(xorbuf));
+		switch (vol->state) {
+		case OPTIMAL:
+			if (sd_write(extent, ba, data) != 0) {
+				vol->extents[extent].state = FAULTY;
+				vol->state = DEGRADED;
+				goto retry_write;
+			}
+
+			memcpy(xorbuf, data, BLKSIZE);
+
+			/* calculate parity */
+			for (uint8_t i = 0; i < vol->devno; i++) {
+				if (i == p_extent || i == extent)
+					continue;
+				if (sd_read_and_xor(i, ba, xorbuf) != 0) {
+					vol->extents[i].state = FAULTY;
+					vol->state = DEGRADED;
+					goto retry_write;
+				}
+			}
+
+			if (vol->extents[p_extent].state != OPTIMAL)
+				break;
+			/* write parity */
+			if (sd_write(p_extent, ba, xorbuf) != 0) {
+				vol->extents[p_extent].state = FAULTY;
+				vol->state = DEGRADED;
+				goto retry_write;
+			}
+			break;
+		case DEGRADED:
+			bad = get_state_dev(vol, FAULTY);
+			if (bad == vol->devno)
+				return (3); /* EINVAL */
+
+			if (extent == bad) {
+				/*
+				 * new parity = read other and xor in new data
+				 *
+				 * write new parity
+				 */
+				memcpy(xorbuf, data, BLKSIZE);
+				for (uint8_t i = 0; i < vol->devno; i++) {
+					if (i == bad || i == p_extent)
+						continue;
+					if (sd_read_and_xor(i, ba, xorbuf) != 0) {
+						vol->extents[i].state = FAULTY; 
+						vol->state = FAULTY;
+						goto error;
+					}
+				}
+
+				if (vol->extents[p_extent].state != OPTIMAL)
+					goto error;
+				/* write parity */
+				if (sd_write(p_extent, ba, xorbuf) != 0) {
+					vol->extents[p_extent].state = FAULTY; 
+					goto error;
+				}
+			} else { /* another extent is FAULTY */
+				/*
+				 * new parity = original data ^ old parity ^ new data
+				 *
+				 * write parity, new data
+				 */
+				if (sd_read(extent, ba, xorbuf) != 0) {
+					vol->extents[extent].state = FAULTY; 
+					goto error;
+				}
+
+				if (sd_read_and_xor(p_extent, ba, xorbuf) != 0) {
+					vol->extents[extent].state = FAULTY; 
+					goto error;
+				}
+
+				uint8_t *data_ = data;
+
+				for (uint16_t i = 0; i < BLKSIZE; i++)
+					xorbuf[i] ^= data_[i];
+
+				if (sd_write(extent, ba, data_) != 0) {
+					vol->extents[extent].state = FAULTY; 
+					goto error;
+				}
+
+				if (sd_write(p_extent, ba, xorbuf) != 0) {
+					vol->extents[p_extent].state = FAULTY; 
+					goto error;
+				}
+			}
+			break;
+		default:
+			return (1); /* FAULTY */
+		}
 		break;
 	default:
 		return (3);
@@ -133,12 +251,7 @@ raid5_op(sdvol_t *vol, uint32_t ba, void *data, bdop_type_t type)
 	return (0);
 
 error:
-	vol->extents[extent].state = FAULTY;
-
-	if (vol->state == OPTIMAL)
-		vol->state = DEGRADED;
-	else
-		vol->state = FAULTY;
+	vol->state = FAULTY;
 
 	return (1);
 }

@@ -164,6 +164,17 @@ count_dev_state(sdvol_t *vol, state_t state)
 	return (k);
 }
 
+uint8_t
+get_state_dev(sdvol_t *vol, state_t state)
+{
+	for (uint8_t i = 0; i < vol->devno; i++) {
+		if (vol->extents[i].state == state)
+			return (i);
+	}
+
+	return (vol->devno);
+}
+
 int
 stack_left(void)
 {

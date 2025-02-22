@@ -63,9 +63,10 @@ sdraid_create(sdraid_cfg_t *cfg, sdvol_t *vol, bool assemble)
 			printf("RAID0 needs at least 2 devices\r\n");
 			return (1);
 		}
+
 		if (!assemble)
-			//vol.strip_size_bits = 12; /* 4K strips */
 			vol->strip_size_bits = 10; /* 1K strips */
+
 		vol->ops.create = raid0_create;
 		vol->ops.init = raid0_init;
 		break;
@@ -84,10 +85,9 @@ sdraid_create(sdraid_cfg_t *cfg, sdvol_t *vol, bool assemble)
 			printf("RAID{4,5} needs at least 3 devices\r\n");
 			return (1);
 		}
-		if (!assemble) {
-			//vol.strip_size_bits = 12; /* 4K strips */
+
+		if (!assemble)
 			vol->strip_size_bits = 10; /* 1K strips */
-		}
 
 		vol->ops.create = raid5_create;
 		vol->ops.init = raid5_init;
