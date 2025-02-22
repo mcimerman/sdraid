@@ -64,7 +64,7 @@ print_vol_state(sdvol_t *vol)
 	printf("extents status: index status\r\n");
 	for (uint8_t i = 0; i < vol->devno; i++) {
 		printf("                  %d    %s\r\n",
-		    i, state_str(vol->extents->state));
+		    i, state_str(vol->extents[i].state));
 	}
 }
 
