@@ -39,7 +39,7 @@ raid1_init(sdvol_t *vol)
 
 	if (healthy < 1) {
 		vol->state = FAULTY;
-		printf("raid1_init(): not enough healthy extents\r\n");
+		printf("not enough healthy extents\r\n");
 		return (1);
 	} else if (healthy < vol->devno) {
 		vol->state = DEGRADED;

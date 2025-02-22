@@ -14,23 +14,24 @@ sdraid_util_get_data_blkno(sdvol_t *vol)
 void
 print_metadata(metadata_t *metadata)
 {
-	printf("metadata:\r\n");
+	DPRINTF("metadata:\r\n");
 
 	char magic[MAGIC_LEN + 1] = { 0 };
 	memcpy(magic, metadata->magic, MAGIC_LEN);
 
-	printf("magic: %s\r\n", magic);
-	printf("version: %u\r\n", metadata->version);
-	printf("devno: %u\r\n", metadata->devno);
-	printf("level: %u\r\n", metadata->level);
-	if (metadata->level == RAID5)
-		printf("layout: %u\r\n", metadata->layout);
-	printf("strip_size: %u\r\n", STRIP_SIZE(metadata->strip_size_bits));
-	printf("blkno: %lu\r\n", metadata->blkno);
-	printf("data_blkno: %lu\r\n", metadata->data_blkno);
-	printf("data_offset (in blocks): %u\r\n", metadata->data_offset);
-	printf("index: %u\r\n", metadata->index);
-	printf("file_size: %lu\r\n", metadata->file_size);
+	DPRINTF("magic: %s\r\n", magic);
+	DPRINTF("version: %u\r\n", metadata->version);
+	DPRINTF("devno: %u\r\n", metadata->devno);
+	DPRINTF("level: %u\r\n", metadata->level);
+	if (metadata->level == RAID5) {
+		DPRINTF("layout: %u\r\n", metadata->layout);
+	}
+	DPRINTF("strip_size: %u\r\n", STRIP_SIZE(metadata->strip_size_bits));
+	DPRINTF("blkno: %lu\r\n", metadata->blkno);
+	DPRINTF("data_blkno: %lu\r\n", metadata->data_blkno);
+	DPRINTF("data_offset (in blocks): %u\r\n", metadata->data_offset);
+	DPRINTF("index: %u\r\n", metadata->index);
+	DPRINTF("file_size: %lu\r\n", metadata->file_size);
 }
 
 void
@@ -127,7 +128,7 @@ read_metadata(sdvol_t *vol)
 			goto good;
 	}
 
-	printf("no succesful metadata read\r\n");
+	DPRINTF("no succesful metadata read\r\n");
 	return (1);
 
 good:

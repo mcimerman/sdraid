@@ -15,8 +15,6 @@
 #include "sd.h"
 #include "sdraid.h"
 
-#define MAX_INPUT_LEN 32
-
 static void init_menu(void);
 static void normal_menu(void);
 static void debug_menu(void);
@@ -27,11 +25,7 @@ static void get(void);
 static void read1(uint8_t *buf);
 static void read2(uint8_t *buf);
 
-
-char input[MAX_INPUT_LEN]; /* laziness */
-
 sdvol_t vol; /* laziness */
-
 
 int
 main(void)
@@ -43,8 +37,6 @@ main(void)
 	spi_init();
 
 	init_menu();
-
-	printf("main() end\r\n");
 
 	return (0);
 }
@@ -87,7 +79,7 @@ init_menu(void)
 			normal_menu();
 			break;
 		default:
-			printf("invalid command\r\n");
+			printf("invalid cmd\r\n");
 			break;
 		}
 	}
@@ -113,7 +105,7 @@ normal_menu(void)
 			debug_menu();
 			break;
 		default:
-			printf("invalid command\r\n");
+			printf("invalid cmd\r\n");
 			break;
 		}
 	}
@@ -138,7 +130,7 @@ debug_menu(void)
 		case 'E':
 			return;
 		default:
-			printf("invalid command\r\n");
+			printf("invalid cmd\r\n");
 			break;
 		}
 	}
@@ -186,7 +178,7 @@ put(void)
 	file_size = rx_uint32_t();
 	blks = rx_uint32_t();
 	if (blks >= vol.data_blkno) {
-		printf("file too big, would use too many blocks: %lu >= vol->data_blkno (%lu)\r\n",
+		printf("file too big: %lu >= vol->data_blkno (%lu)\r\n",
 		    blks, vol.data_blkno);
 		return;
 	}

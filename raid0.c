@@ -39,7 +39,7 @@ raid0_init(sdvol_t *vol)
 
 	if (healthy != vol->devno) {
 		vol->state = FAULTY;
-		printf("raid0_init(): not enough healthy extents\r\n");
+		printf("not enough healthy extents\r\n");
 		return (1);
 	} else {
 		vol->state = OPTIMAL;
