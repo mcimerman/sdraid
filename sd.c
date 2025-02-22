@@ -164,6 +164,38 @@ error:
 }
 
 uint8_t
+sd_read_and_xor(uint8_t dev, uint32_t ba, uint8_t *buf)
+{
+	uint8_t response;
+	uint16_t retry = 0;
+
+	response = sd_cmd(dev, READ_SINGLE_BLOCK, ba);
+
+	if(response != 0x00)
+		return (response);
+
+	ss_enable(dev);
+
+	while(spi_rx() != 0xfe)
+		if (retry++ > 0xfffe)
+			goto error;
+
+	for(uint16_t i = 0; i < BLKSIZE; i++)
+		buf[i] ^= spi_rx();
+
+	spi_rx();
+	spi_rx();
+
+	spi_rx();
+	ss_disable(dev);
+
+	return (0);
+error:
+	ss_disable(dev);
+	return (1);
+}
+
+uint8_t
 sd_write(uint8_t dev, uint32_t ba, uint8_t *buf)
 {
 #ifndef WRITE_ENABLED

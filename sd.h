@@ -26,6 +26,7 @@ uint8_t sd_init(uint8_t);
 uint8_t sd_cmd(uint8_t, uint8_t, uint32_t);
 uint32_t sd_nblocks(uint8_t);
 uint8_t sd_read(uint8_t, uint32_t, uint8_t *);
+uint8_t sd_read_and_xor(uint8_t, uint32_t, uint8_t *);
 uint8_t sd_write(uint8_t, uint32_t, uint8_t *);
 
 #endif
