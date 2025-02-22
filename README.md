@@ -115,7 +115,8 @@ For developing own interfaces using classic R/W see `blkdev_ops_t` in [<var.h>](
 ├── spi.c            <-- SPI control
 ├── spi.h
 ├── testfiles
-│   └── cyclic10.txt
+│   ├── cyclic10.txt
+│   └── mountains.jpg
 ├── uart.c           <-- serial communication
 ├── uart.h
 ├── util.c           <-- helper functions
