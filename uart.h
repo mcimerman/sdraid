@@ -3,10 +3,15 @@
 
 #include "var.h"
 
-#define BAUD 9600UL
+#ifndef BAUDRATE
+#error "BAUDRATE not set"
+#endif
 
-#define UBRR_VALUE (((F_CPU) + 8UL * (BAUD)) / (16UL * (BAUD)) - 1UL)
-
+#ifdef DOUBLE_SPEED_MODE
+#define UBRR_VALUE (((F_CPU) + 4UL * (BAUDRATE)) / (8UL * (BAUDRATE)) - 1UL)
+#else
+#define UBRR_VALUE (((F_CPU) + 8UL * (BAUDRATE)) / (16UL * (BAUDRATE)) - 1UL)
+#endif
 
 void uart_init(void);
 uint8_t uart_rx(void);

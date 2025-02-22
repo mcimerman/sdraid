@@ -24,7 +24,9 @@
 #define ASSERT_HARD	true
 #define ASSERT_SOFT	false
 
-#define BAUDRATE B9600
+#ifndef BAUDRATE
+#error "BAUDRATE not set"
+#endif
 
 /* all modes */
 #define HELP_STR	"help"

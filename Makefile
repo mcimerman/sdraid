@@ -1,12 +1,12 @@
+BAUDRATE = 115200
+
 # m328p
 CC = avr-gcc
-CFLAGS = -mmcu=atmega328p -Os -Wall -Wextra -std=c99 -pedantic
+CFLAGS = -mmcu=atmega328p -Os -Wall -Wextra -std=c99 -pedantic -DBAUDRATE=$(BAUDRATE) -DDOUBLE_SPEED_MODE
 
 # client
 CC2 = gcc
-CFLAGS2 = -O2 -Wall -Wextra -std=c99 -pedantic
-
-BAUDRATE = 9600
+CFLAGS2 = -O2 -Wall -Wextra -std=c99 -pedantic -DBAUDRATE=B$(BAUDRATE)
 
 DEV = "$(shell ls /dev/ttyUSB* | sed 1q)"
 

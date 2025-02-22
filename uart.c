@@ -23,6 +23,9 @@ putchar_(char c, FILE *f)
 void
 uart_init(void)
 {
+#ifdef DOUBLE_SPEED_MODE
+	UCSR0A = (1 << U2X0);
+#endif
 	UBRR0 = UBRR_VALUE;
 	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
 	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
