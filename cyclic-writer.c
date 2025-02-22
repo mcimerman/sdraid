@@ -9,8 +9,6 @@
 
 #define BLKSIZE 512
 
-#define BLKNO 10
-
 int
 main(int argc, char **argv)
 {
