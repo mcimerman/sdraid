@@ -3,6 +3,8 @@
 #include "sd.h"
 #include "spi.h"
 #include "uart.h"
+#include "util.h"
+
 
 /*
 #undef WRITE_ENABLED
@@ -127,7 +129,7 @@ sd_nblocks(uint8_t dev)
 	return (block_count);
 error:
 	ss_disable(dev);
-	printf("error while getting blkno of sd %u\r\n", dev);
+	DPRINTF("error while getting blkno of sd[%u]\r\n", dev);
 	return (0);
 }
 
