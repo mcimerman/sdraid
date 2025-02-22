@@ -7,8 +7,8 @@
 
 #include <avr/io.h>
 
-#define MAX_DEVNO	3
-#define BLKSIZE		512
+#include "common.h"
+
 #define META_SIZE	1 /* in blocks */
 #define META_OFFSET	3 /* in blocks */
 #define DATA_OFFSET	((META_SIZE) + (META_OFFSET))
@@ -37,12 +37,6 @@ typedef enum {
 	READ,
 	WRITE
 } bdop_type_t;
-
-typedef enum {
-	RAID0 = 0,
-	RAID1 = 1,
-	INVALID
-} sdlevel_t;
 
 typedef enum {
 	OPTIMAL,
