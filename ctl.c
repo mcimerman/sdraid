@@ -629,7 +629,6 @@ get_block(uint8_t *buf)
 		/* 32 is the serial buffer size */
 		int n = read(ttyfd, buf + bytes_read, 32);
 		bytes_read += n;
-		poll(NULL, 0, 100);
 	}
 }
 
