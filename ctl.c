@@ -473,8 +473,6 @@ put(const char *filename)
 	if (file_size % BLKSIZE != 0)
 		blks++;
 
-	printf("will send %u blocks\n", blks);
-
 	write(ttyfd, "P", 1);
 	/* XXX: little endian is assumed */
 	write(ttyfd, &file_size, sizeof(uint32_t));
@@ -505,6 +503,9 @@ put(const char *filename)
 			goto end;
 		}
 		written_blks++;
+
+		printf("progress: %u/%u blocks written (%u%%)\n",
+		    written_blks, blks, (uint32_t)((float)written_blks / blks * 100));
 	}
 
 	assert_ok(ASSERT_SOFT);
@@ -549,6 +550,8 @@ get(const char *filename)
 			write(filefd, filebuf, file_size % BLKSIZE);
 		else
 			write(filefd, filebuf, BLKSIZE);
+		printf("progress: %u/%u blocks read (%u%%)\n",
+		    i + 1, blks, (uint32_t)(((float)i + 1) / blks * 100));
 	}
 
 	assert_ok(ASSERT_SOFT);
