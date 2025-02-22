@@ -507,8 +507,7 @@ put(const char *filename)
 		written_blks++;
 	}
 
-	if (!assert_ok(ASSERT_SOFT))
-		goto end;
+	assert_ok(ASSERT_SOFT);
 
 end:
 	close(filefd);
