@@ -99,6 +99,7 @@ For developing own interfaces using classic R/W see `blkdev_ops_t` in [<var.h>](
 ├── README.md
 ├── common.h         <-- common header for sdraid and client
 ├── ctl.c            <-- control client
+├── cyclic-writer.c  <-- testfile generator
 ├── main.c           <-- proof of concept interface
 ├── photos
 │   ├── sdraid1.jpg
@@ -113,6 +114,8 @@ For developing own interfaces using classic R/W see `blkdev_ops_t` in [<var.h>](
 ├── sdraid.h
 ├── spi.c            <-- SPI control
 ├── spi.h
+├── testfiles
+│   └── cyclic10.txt
 ├── uart.c           <-- serial communication
 ├── uart.h
 ├── util.c           <-- helper functions
