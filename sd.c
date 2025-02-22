@@ -115,7 +115,7 @@ sd_nblocks(uint8_t dev)
 
 	if ((csd[0] >> 6) == 1) {
 		c_size =
-		    ((uint32_t)(csd[7] & 0b00111111) << 16) |
+		    ((uint32_t)(csd[7] & 0x3f) << 16) |
 		    ((uint32_t)csd[8] << 8) |
 		    (uint32_t)csd[9];
 
