@@ -99,7 +99,7 @@ write_metadata(sdvol_t *vol)
 
 		memcpy(meta_block, &metadata, sizeof(metadata_t));
 		if (sd_write(i, META_OFFSET, meta_block) != 0) {
-			printf("failed writing metadata to sd %u\r\n", i);
+			DPRINTF("failed writing metadata to sd %u\r\n", i);
 			return (1);
 		}
 	}
