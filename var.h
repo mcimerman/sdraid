@@ -53,6 +53,7 @@ struct sdvol {
 	blkdev_ops_t dev_ops;
 	uint8_t devno;
 	uint8_t level;
+	layout_t layout;
 	uint32_t blkno;
 	uint32_t data_blkno;
 	uint8_t data_offset;
@@ -66,6 +67,7 @@ typedef struct metadata {
 	uint8_t version;
 	uint8_t devno;
 	uint8_t level;
+	uint8_t layout;
 	uint8_t strip_size_bits;
 	uint32_t blkno;
 	uint32_t data_blkno;
@@ -76,12 +78,15 @@ typedef struct metadata {
 typedef struct sdraid_cfg {
 	uint8_t devno;
 	uint8_t level;
+	uint8_t layout;
 } sdraid_cfg_t;
 
 extern uint8_t raid0_create(sdvol_t *);
 extern uint8_t raid1_create(sdvol_t *);
+extern uint8_t raid5_create(sdvol_t *);
 
 extern uint8_t raid0_init(sdvol_t *);
 extern uint8_t raid1_init(sdvol_t *);
+extern uint8_t raid5_init(sdvol_t *);
 
 #endif

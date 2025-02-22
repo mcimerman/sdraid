@@ -23,10 +23,12 @@ print_metadata(metadata_t *metadata)
 	printf("version: %u\r\n", metadata->version);
 	printf("devno: %u\r\n", metadata->devno);
 	printf("level: %u\r\n", metadata->level);
+	if (metadata->level == RAID5)
+		printf("layout: %u\r\n", metadata->layout);
 	printf("strip_size: %u\r\n", STRIP_SIZE(metadata->strip_size_bits));
 	printf("blkno: %lu\r\n", metadata->blkno);
 	printf("data_blkno: %lu\r\n", metadata->data_blkno);
-	printf("data_offset: %u\r\n", metadata->data_offset);
+	printf("data_offset (in blocks): %u\r\n", metadata->data_offset);
 	printf("index: %u\r\n", metadata->index);
 }
 
@@ -36,6 +38,8 @@ print_vol_info(sdvol_t *vol)
 	printf("vol info:\r\n");
 	printf("devno: %u\r\n", vol->devno);
 	printf("level: %u\r\n", vol->level);
+	if (vol->level == RAID5)
+		printf("layout: %u\r\n", vol->layout);
 	printf("strip_size: %u\r\n", STRIP_SIZE(vol->strip_size_bits));
 	printf("blkno: %lu\r\n", vol->blkno);
 	printf("data_blkno: %lu\r\n", vol->data_blkno);
@@ -75,10 +79,12 @@ fill_metadata(sdvol_t *vol, metadata_t *metadata)
 	metadata->version = 0x00; /* XXX */
 	metadata->devno = vol->devno;
 	metadata->level = vol->level;
+	metadata->layout = vol->layout;
 	metadata->strip_size_bits = vol->strip_size_bits;
 	metadata->blkno = vol->blkno;
 	metadata->data_blkno = vol->data_blkno;
 	metadata->data_offset = vol->data_offset;
+	metadata->file_size = vol->file_size;
 }
 
 uint8_t
@@ -132,6 +138,7 @@ good:
 
 	vol->devno = metadata.devno;
 	vol->level = metadata.level;
+	vol->layout = metadata.layout;
 	vol->strip_size_bits = metadata.strip_size_bits;
 	vol->blkno = metadata.blkno;
 	vol->data_blkno = metadata.data_blkno;
