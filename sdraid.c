@@ -9,339 +9,104 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "uart.h"
-#include "util.h"
-#include "spi.h"
 #include "sd.h"
+#include "util.h"
+#include "sdraid.h"
 
-#define MAX_INPUT_LEN 32
-
-static void debug_menu(uint8_t *);
-static void read_input(void);
-static sdraid_cfg_t fill_cfg(bool);
-static void menu(void);
-static void io_menu(void);
-static uint8_t sdraid_create(sdraid_cfg_t *, bool);
-static void sdraid_print_status(void);
-static void print_block(uint8_t *);
-
-char input[MAX_INPUT_LEN];
-
-sdvol_t vol;
-
-int
-main(void)
+void
+sdraid_print_status(sdvol_t *vol)
 {
-	_delay_ms(100);
-
-	uart_init();
-
-	spi_init();
-
-	printf("Hello, Serial SDRAID World!\r\n");
-
-	menu();
-
-	printf("main() end\r\n");
-
-	return (0);
+	print_vol_info(vol);
+	print_vol_state(vol);
 }
 
-static void
-sdraid_print_status(void)
+uint8_t
+sdraid_create(sdraid_cfg_t *cfg, sdvol_t *vol, bool assemble)
 {
-	print_vol_info(&vol);
-	print_vol_state(&vol);
-}
-
-static void
-read_input(void)
-{
-	char c;
-	uint8_t i = 0;
-
-	while ((c = uart_rx()) != '\r') {
-		printf("%c", c);
-		input[i++] = c;
-	}
-
-	printf("\r\n");
-
-	input[i] = '\0';
-}
-
-static sdraid_cfg_t
-fill_cfg(bool assembly)
-{
-	sdraid_cfg_t cfg = { 0 };
-
-	printf("devno: ");
-	read_input();
-	cfg.devno = atoi(input);
-	printf("\r\n");
-
-	if (assembly)
-		return cfg;
-
-	printf("level: ");
-	read_input();
-	cfg.level = atoi(input);
-	printf("\r\n");
-
-	/* TODO: if RAID5 */
-	/*
-	printf("layout: ");
-	int devno = uart_rx();
-	printf("\r\n");
-	*/
-
-	return cfg;
-}
-
-static uint8_t
-sdraid_create(sdraid_cfg_t *cfg, bool assemble)
-{
-	printf("sdraid_create()\r\n");
+	DPRINTF("sdraid_create()\r\n");
 
 	for (uint8_t i = 0; i < MAX_DEVNO; i++)
-		vol.extents[i].state = FAULTY;
+		vol->extents[i].state = FAULTY;
 
 	if (assemble) {
+		DPRINTF("sdraid_create(): assembling\r\n");
 		for (uint8_t i = 0; i < MAX_DEVNO; i++) {
 			if (sd_init(i) == 0)
-				vol.extents[i].state = OPTIMAL;
+				vol->extents[i].state = OPTIMAL;
 		}
 
-		if (read_metadata(&vol) != 0)
+		DPRINTF("sdraid_create(): reading\r\n");
+		if (read_metadata(vol) != 0) {
+			printf("failed reading metadata");
 			return (1);
+		}
 	} else {
-		printf("creating volume with devno: %u, level: %u\r\n",
+		DPRINTF("creating volume with devno: %u, level: %u\r\n",
 		    cfg->devno, cfg->level);
-		vol.devno = cfg->devno;
-		vol.level = cfg->level;
-		vol.data_offset = DATA_OFFSET;
+		vol->devno = cfg->devno;
+		vol->level = cfg->level;
+		vol->layout = cfg->layout;
+		vol->data_offset = DATA_OFFSET;
 
-		for (uint8_t i = 0; i < vol.devno; i++) {
+		for (uint8_t i = 0; i < vol->devno; i++) {
 			if (sd_init(i) == 0)
-				vol.extents[i].state = OPTIMAL;
+				vol->extents[i].state = OPTIMAL;
 			else
 				printf("failed initing card no. %u\r\n", i);
 		}
 	}
 
-	switch (vol.level) {
+	DPRINTF("sdraid_create(): switch\r\n");
+	switch (vol->level) {
 	case RAID0:
+		if (vol->devno < 2) {
+			printf("RAID0 needs at least 2 devices\r\n");
+			return (1);
+		}
 		if (!assemble)
 			//vol.strip_size_bits = 12; /* 4K strips */
-			vol.strip_size_bits = 10; /* 1K strips */
-		vol.ops.create = raid0_create;
-		vol.ops.init = raid0_init;
+			vol->strip_size_bits = 10; /* 1K strips */
+		vol->ops.create = raid0_create;
+		vol->ops.init = raid0_init;
 		break;
 	case RAID1:
+		if (vol->devno < 2) {
+			printf("RAID1 needs at least 2 devices\r\n");
+			return (1);
+		}
 		if (!assemble)
-			vol.strip_size_bits = 0;
-		vol.ops.create = raid1_create;
-		vol.ops.init = raid1_init;
+			vol->strip_size_bits = 0;
+		vol->ops.create = raid1_create;
+		vol->ops.init = raid1_init;
+		break;
+	case RAID5:
+		if (vol->devno < 3) {
+			printf("RAID{4,5} needs at least 3 devices\r\n");
+			return (1);
+		}
+		if (!assemble) {
+			//vol.strip_size_bits = 12; /* 4K strips */
+			vol->strip_size_bits = 10; /* 1K strips */
+		}
+
+		vol->ops.create = raid5_create;
+		vol->ops.init = raid5_init;
 		break;
 	default:
 		printf("error: invalid level\r\n");
 		return (1);
 	}
 
-	if (vol.ops.init(&vol) != 0) {
+	if (vol->ops.init(vol) != 0) {
 		printf("failed to init the volume\r\n");
 		return (1);
 	}
 
 	if (!assemble) {
-		if (vol.ops.create(&vol) != 0)
+		if (vol->ops.create(vol) != 0)
 			return (1);
 	}
 
-	printf("sdraid_create(): sucess\r\n");
+	DPRINTF("sdraid_create(): sucess\r\n");
 	return (0);
-}
-
-/*
- * XXX: check disassembly: see how the prinf gets compiled, if it
- * doesnt generate too much code when printing only stringlits
- */
-
-static void
-menu(void)
-{
-	sdraid_cfg_t cfg = { 0 };
-
-	printf("----- SDRAID -----\r\n");
-	for (;;) {
-		printf("----- select item -----\r\n");
-		printf("'C'  -  Create new volume\r\n");
-		printf("'A'  -  Assemble volume\r\n");
-		char c = uart_rx();
-		switch (c) {
-		case 'c':
-		case 'C':
-			cfg = fill_cfg(false);
-			if (sdraid_create(&cfg, false) != 0) {
-				printf("error creating volume\r\n");
-				break;
-			}
-			io_menu();
-			break;
-		case 'a':
-		case 'A':
-			if (sdraid_create(&cfg, true) != 0) {
-				printf("error assembling volume\r\n");
-				break;
-			}
-			io_menu();
-			break;
-		default:
-			printf("invalid command\r\n");
-			break;
-		}
-	}
-}
-
-static void
-io_menu(void)
-{
-	uint32_t off;
-	uint8_t buf[BLKSIZE] = { 0 };
-
-	printf("----- IO menu -----\r\n");
-	for (;;) {
-		printf("----- select item -----\r\n");
-		printf("'S'  -  print status\r\n");
-		printf("'R'  -  READ from volume\r\n");
-		printf("'W'  -  WRITE to volume\r\n");
-		printf("'D'  -  DEBUG menu\r\n");
-		printf("'Q'  -  return to the default menu\r\n");
-		char c = uart_rx();
-		switch (c) {
-		case 'S':
-			sdraid_print_status();
-			break;
-		case 'r':
-		case 'R':
-			printf("offset (in blocks): ");
-			read_input();
-			off = strtol(input, NULL, 10);
-			printf("\r\n");
-
-
-			printf("len (in blocks): ");
-			read_input();
-			uint32_t len = strtol(input, NULL, 10);
-			printf("\r\n");
-
-			for (uint32_t i = 0; i < len; i++) {
-				if (vol.dev_ops.vol_read_blk(&vol, off, buf)
-				    != 0) {
-					printf("failed reading\r\n");
-					break;
-				}
-				printf("volume block: %lu\r\n", off + i);
-				print_block(buf);
-			}
-			memset(buf, 0, BLKSIZE);
-
-			break;
-		case 'w':
-		case 'W':
-			printf("block number (indexed from 0): ");
-			read_input();
-			off = strtol(input, NULL, 10);
-			printf("\r\n");
-
-			printf("content to fill the block with: ");
-			read_input();
-			uint8_t content = uart_rx();
-			printf("%c\r\n", content);
-
-			memset(buf, content, BLKSIZE);
-
-			if (vol.dev_ops.vol_write_blk(&vol, off, buf) != 0) {
-				printf("failed writing\r\n");
-				memset(buf, 0, BLKSIZE);
-				break;
-			}
-
-			memset(buf, 0, BLKSIZE);
-
-			printf("WRITE OK\r\n");
-
-			break;
-		case 'd':
-		case 'D':
-			debug_menu(buf);
-			break;
-		case 'q':
-		case 'Q':
-			return;
-		default:
-			printf("invalid command\r\n");
-			break;
-		}
-	}
-}
-
-static void
-print_block(uint8_t *buf)
-{
-	printf("+-----------+\r\n");
-	for (uint8_t i = 0; i * 32 < 512; i += 4)
-	printf("|%.2x %.2x %.2x %.2x|\r\n", buf[(i + 0)* 32],
-	    buf[(i + 1) * 32], buf[(i + 2) * 32], buf[(i + 3) * 32]);
-	printf("+-----------+\r\n");
-}
-
-static void
-debug_menu(uint8_t *readbuf)
-{
-	printf("----- debug menu -----\r\n");
-	for (;;) {
-		printf("----- select item -----\r\n");
-		printf("'R'  -  READ (will go to extent selection)\r\n");
-		printf("'Q'  -  return to the IO menu\r\n");
-
-		char c = uart_rx();
-		switch (c) {
-		case 'r':
-		case 'R':
-			printf("extent: ");
-			read_input();
-			uint8_t extent = atoi(input);
-			printf("\r\n");
-
-			printf("offset (in blocks): ");
-			read_input();
-			uint32_t off = strtol(input, NULL, 10);
-			printf("\r\n");
-
-			printf("len (in blocks): ");
-			read_input();
-			uint32_t len = strtol(input, NULL, 10);
-			printf("\r\n");
-
-			for (uint32_t i = 0; i < len; i++) {
-				uint8_t rc;
-				if ((rc = sd_read(extent, off + i, readbuf)) != 0) {
-					printf("failed reading: %u\r\n", rc);
-					break;
-				}
-				printf("ext: %u, block: %lu\r\n",
-				    extent, off + i);
-				print_block(readbuf);
-			}
-
-			break;
-		case 'q':
-		case 'Q':
-			return;
-		default:
-			printf("invalid command\r\n");
-			break;
-		}
-	}
 }

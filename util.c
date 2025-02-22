@@ -30,6 +30,7 @@ print_metadata(metadata_t *metadata)
 	printf("data_blkno: %lu\r\n", metadata->data_blkno);
 	printf("data_offset (in blocks): %u\r\n", metadata->data_offset);
 	printf("index: %u\r\n", metadata->index);
+	printf("file_size: %lu\r\n", metadata->file_size);
 }
 
 void
@@ -43,7 +44,8 @@ print_vol_info(sdvol_t *vol)
 	printf("strip_size: %u\r\n", STRIP_SIZE(vol->strip_size_bits));
 	printf("blkno: %lu\r\n", vol->blkno);
 	printf("data_blkno: %lu\r\n", vol->data_blkno);
-	printf("data_offset: %u\r\n", vol->data_offset);
+	printf("data_offset (in blocks): %u\r\n", vol->data_offset);
+	printf("file_size: %lu\r\n", vol->file_size);
 }
 
 static const char *
@@ -143,6 +145,7 @@ good:
 	vol->blkno = metadata.blkno;
 	vol->data_blkno = metadata.data_blkno;
 	vol->data_offset = metadata.data_offset;
+	vol->file_size = metadata.file_size;
 
 	return (0);
 }

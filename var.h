@@ -60,6 +60,7 @@ struct sdvol {
 	uint8_t strip_size_bits; /* bit shifted strip size */
 	extent_t extents[MAX_DEVNO];
 	state_t state;
+	uint32_t file_size;
 } __attribute__((packed));
 
 typedef struct metadata {
@@ -73,6 +74,7 @@ typedef struct metadata {
 	uint32_t data_blkno;
 	uint8_t data_offset;
 	uint8_t index; /* currently not used */
+	uint32_t file_size;
 } __attribute__((packed)) metadata_t;
 
 typedef struct sdraid_cfg {
