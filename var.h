@@ -12,8 +12,8 @@
 #define META_SIZE	1 /* in blocks */
 #define META_OFFSET	3 /* in blocks */
 #define DATA_OFFSET	((META_SIZE) + (META_OFFSET))
-#define MAGIC "RAID"
-#define MAGIC_LEN	4
+#define MAGIC		"SDRAID"
+#define MAGIC_LEN	6
 
 #define STRIP_SIZE(sz)	(1 << (sz))
 
@@ -63,7 +63,7 @@ struct sdvol {
 } __attribute__((packed));
 
 typedef struct metadata {
-	char magic[4];
+	char magic[MAGIC_LEN];
 	uint8_t version;
 	uint8_t devno;
 	uint8_t level;
