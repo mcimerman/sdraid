@@ -10,7 +10,7 @@ BAUDRATE = 9600
 
 DEV = "$(shell ls /dev/ttyUSB* | sed 1q)"
 
-.PHONY: all clean upload ctl
+.PHONY: all clean upload ctl cyclic-writer
 
 all: main
 
@@ -25,11 +25,14 @@ ctl: common.h
 	$(CC2) $(CFLAGS2) -o $@ ctl.c
 	./ctl $(DEV)
 
+cyclic-writer:
+	$(CC2) $(CFLAGS2) -o $@ cyclic-writer.c
+
 %.o: %.c var.h uart.h spi.h sd.h util.h common.h sdraid.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o *.hex main ctl
+	rm -f *.o *.hex main ctl cyclic-writer
 
 serial:
 	screen $(DEV) $(BAUDRATE) -parenb -cstopb
