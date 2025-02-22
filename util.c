@@ -91,8 +91,6 @@ write_metadata(sdvol_t *vol)
 
 	fill_metadata(vol, &metadata);
 
-	print_metadata(&metadata);
-
 	for (uint8_t i = 0; i < vol->devno; i++) {
 		if (vol->extents[i].state == FAULTY)
 			continue;
@@ -131,8 +129,6 @@ good:
 		printf("invalid magic\r\n");
 		return (1);
 	}
-
-	print_metadata(&metadata);
 
 	vol->devno = metadata.devno;
 	vol->level = metadata.level;
