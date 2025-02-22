@@ -10,7 +10,7 @@ static uint8_t raid1_read(sdvol_t *, uint32_t, void *);
 uint8_t
 raid1_create(sdvol_t *vol)
 {
-	printf("raid1_create()\r\n");
+	DPRINTF("raid1_create()\r\n");
 
 	/*
 	 * XXX: for now take first card's nblocks
@@ -20,7 +20,7 @@ raid1_create(sdvol_t *vol)
 	vol->data_blkno = sd_nblocks(0) - vol->data_offset;
 
 	if (write_metadata(vol) != 0) {
-		printf("metadata write failed\r\n");
+		DPRINTF("metadata write failed\r\n");
 		return (1);
 	}
 
@@ -30,7 +30,7 @@ raid1_create(sdvol_t *vol)
 uint8_t
 raid1_init(sdvol_t *vol)
 {
-	printf("raid1_init()\r\n");
+	DPRINTF("raid1_init()\r\n");
 	vol->dev_ops.vol_write_blk = raid1_write;
 	vol->dev_ops.vol_read_blk = raid1_read;
 	vol->dev_ops.vol_blkno = sdraid_util_get_data_blkno;
@@ -39,6 +39,7 @@ raid1_init(sdvol_t *vol)
 
 	if (healthy < 1) {
 		vol->state = FAULTY;
+		printf("raid1_init(): not enough healthy extents\r\n");
 		return (1);
 	} else if (healthy < vol->devno) {
 		vol->state = DEGRADED;
@@ -52,7 +53,7 @@ raid1_init(sdvol_t *vol)
 static uint8_t
 raid1_write(sdvol_t *vol, uint32_t ba, void *data)
 {
-	printf("raid1_write()\r\n");
+	DPRINTF("raid1_write()\r\n");
 
 	if (vol->state == FAULTY)
 		return (1);
@@ -86,7 +87,7 @@ raid1_write(sdvol_t *vol, uint32_t ba, void *data)
 static uint8_t
 raid1_read(sdvol_t *vol, uint32_t ba, void *data)
 {
-	printf("raid1_read()\r\n");
+	DPRINTF("raid1_read()\r\n");
 
 	if (vol->state == FAULTY)
 		return (1);
@@ -104,6 +105,7 @@ raid1_read(sdvol_t *vol, uint32_t ba, void *data)
 			return (0);
 
 		vol->extents[i].state = FAULTY;
+		vol->state = DEGRADED;
 	}
 
 	vol->state = FAULTY;
