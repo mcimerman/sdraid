@@ -19,7 +19,7 @@ static void init_menu(void);
 static void normal_menu(void);
 static void debug_menu(void);
 static sdraid_cfg_t fill_cfg(bool);
-static void receive_and_write_block(uint32_t);
+static uint8_t receive_and_write_block(uint32_t);
 static void put(void);
 static void get(void);
 static void read1(uint8_t *buf);
@@ -155,19 +155,15 @@ fill_cfg(bool assembly)
 }
 
 __attribute__ ((noinline))
-static void
+static uint8_t
 receive_and_write_block(uint32_t off)
 {
 	uint8_t buf[BLKSIZE];
 
-	for (uint16_t i = 0; i < BLKSIZE; i++) {
+	for (uint16_t i = 0; i < BLKSIZE; i++)
 		buf[i] = uart_rx();
-	}
 
-	if (vol.dev_ops.vol_write_blk(&vol, off, buf) == 0)
-		printf("OK\r\n");
-	else
-		printf("NOK\r\n");
+	return (vol.dev_ops.vol_write_blk(&vol, off, buf));
 }
 
 static void
@@ -194,8 +190,14 @@ put(void)
 
 	printf("OK\r\n");
 
-	for (uint32_t i = 0; i < blks; i++)
-		receive_and_write_block(i);
+	for (uint32_t i = 0; i < blks; i++) {
+		if (receive_and_write_block(i) == 0) {
+			printf("OK\r\n");
+		} else {
+			printf("NOK\r\n");
+			return;
+		}
+	}
 
 	_delay_ms(500);
 
