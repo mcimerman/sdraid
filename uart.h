@@ -3,7 +3,7 @@
 
 #include "var.h"
 
-#define BAUD 115200UL
+#define BAUD 9600UL
 
 #define UBRR_VALUE (((F_CPU) + 8UL * (BAUD)) / (16UL * (BAUD)) - 1UL)
 
