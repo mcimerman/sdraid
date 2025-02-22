@@ -9,6 +9,9 @@
 
 
 void uart_init(void);
-char uart_rx(void);
+uint8_t uart_rx(void);
+uint8_t uart_tx(char);
+uint32_t rx_uint32_t(void);
+void tx_uint32_t(uint32_t);
 
 #endif
