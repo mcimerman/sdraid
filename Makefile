@@ -1,23 +1,35 @@
-CFLAGS = -mmcu=atmega328p -Os -Wall -Wextra
+# m328p
 CC = avr-gcc
+CFLAGS = -mmcu=atmega328p -Os -Wall -Wextra -std=c99 -pedantic
+
+# client
+CC2 = gcc
+CFLAGS2 = -O2 -Wall -Wextra -std=c99 -pedantic
+
+BAUDRATE = 9600
+
 DEV = "$(shell ls /dev/ttyUSB* | sed 1q)"
 
-.PHONY: all clean upload
+.PHONY: all clean upload ctl
 
-all: sdraid 
+all: main
 
-upload: sdraid
+upload: main
 	avr-objcopy -O ihex $< $<.hex
 	avrdude -c arduino -p m328p -U flash:w:"$<.hex":a -P $(DEV) || rm $<
 
-sdraid: sdraid.o uart.o spi.o sd.o util.o raid0.c raid1.c
+main: main.o sdraid.o uart.o spi.o sd.o util.o raid0.o raid1.o raid5.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-%.o: %.c var.h uart.h spi.h sd.h util.h
+ctl: common.h
+	$(CC2) $(CFLAGS2) -o $@ ctl.c
+	./ctl $(DEV)
+
+%.o: %.c var.h uart.h spi.h sd.h util.h common.h sdraid.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f *.o *.hex sdraid
+	rm -f *.o *.hex main ctl
 
 serial:
-	screen $(DEV) 115200 -parenb -cstopb
+	screen $(DEV) $(BAUDRATE) -parenb -cstopb
