@@ -519,7 +519,8 @@ get(const char *filename)
 {
 	uint32_t file_size;
 
-	int filefd = open(filename, O_WRONLY | O_CREAT | O_EXCL);
+	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+	int filefd = open(filename, O_WRONLY | O_CREAT | O_EXCL, mode);
 	if (filefd == -1) {
 		perror("open()");
 		return;
