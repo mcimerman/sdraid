@@ -3,6 +3,13 @@
 
 #include "var.h"
 
+#ifdef DEBUG
+#define DPRINTF(format, ...) \
+    printf(format, ##__VA_ARGS__)
+#else
+#define DPRINTF(...)
+#endif
+
 uint32_t sdraid_util_get_data_blkno(sdvol_t *);
 void print_metadata(metadata_t *);
 void print_vol_info(sdvol_t *);
