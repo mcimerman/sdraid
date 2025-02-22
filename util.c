@@ -156,3 +156,16 @@ count_dev_state(sdvol_t *vol, state_t state)
 
 	return (k);
 }
+
+int
+stack_left(void)
+{
+	extern int *__brkval;
+	extern int __heap_start;
+	int local_var;
+
+	if ((int)__brkval == 0)
+		return (int)&local_var - (int)&__heap_start;
+	else
+		return (int)&local_var - (int) __brkval;
+}

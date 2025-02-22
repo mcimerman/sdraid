@@ -18,5 +18,6 @@ uint8_t write_metadata(sdvol_t *);
 uint8_t read_metadata(sdvol_t *);
 void print_vol_state(sdvol_t *);
 uint8_t count_dev_state(sdvol_t *, state_t);
+int stack_left(void);
 
 #endif
