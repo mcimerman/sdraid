@@ -6,10 +6,8 @@
 #include "util.h"
 
 
-/*
-#undef WRITE_ENABLED
-*/
 #define WRITE_ENABLED
+
 
 uint8_t
 sd_init(uint8_t dev)
