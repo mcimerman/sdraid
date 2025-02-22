@@ -96,9 +96,10 @@ For developing own interfaces using classic R/W see `blkdev_ops_t` in [<var.h>](
 ```
 .
 ├── Makefile
+├── README.md
 ├── common.h         <-- common header for sdraid and client
 ├── ctl.c            <-- control client
-├── README.md
+├── main.c           <-- proof of concept interface
 ├── photos
 │   ├── sdraid1.jpg
 │   ├── sdraid2.jpg
@@ -108,7 +109,8 @@ For developing own interfaces using classic R/W see `blkdev_ops_t` in [<var.h>](
 ├── raid5.c          <-- striping with parity functions
 ├── sd.c             <-- SD card commands
 ├── sd.h
-├── sdraid.c
+├── sdraid.c         <-- main sdraid functions
+├── sdraid.h
 ├── spi.c            <-- SPI control
 ├── spi.h
 ├── uart.c           <-- serial communication
